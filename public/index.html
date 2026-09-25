@@ -1,32 +1,414 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Hello, World!</title>
-	</head>
-	<body>
-		<h1 id="heading"></h1>
-		<p>This page comes from a static asset stored at `public/index.html` as configured in `wrangler.jsonc`.</p>
-		<button id="button" type="button">Fetch a random UUID</button>
-		<output id="random" for="button"></output>
-		<script>
-			fetch('/message')
-				.then((resp) => resp.text())
-				.then((text) => {
-					const h1 = document.getElementById('heading');
-					h1.textContent = text;
-				});
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CallIQ Dashboard</title>
 
-			const button = document.getElementById("button");
-			button.addEventListener("click", () => {
-				fetch('/random')
-					.then((resp) => resp.text())
-					.then((text) => {
-						const random = document.getElementById('random');
-						random.textContent = text;
-					});
-			});
-		</script>
-	</body>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b1119;
+      color: #f5f7fa;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+
+    .sidebar {
+      width: 230px;
+      background: #080d14;
+      border-right: 1px solid #202a36;
+      padding: 32px 20px;
+    }
+
+    .logo {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .logo span {
+      color: #c9a66b;
+    }
+
+    .tagline {
+      color: #7f8a99;
+      font-size: 9px;
+      letter-spacing: 2px;
+      margin-bottom: 45px;
+    }
+
+    nav a {
+      display: block;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      color: #9aa5b3;
+      text-decoration: none;
+    }
+
+    nav a.active {
+      background: #202a36;
+      color: white;
+      border-left: 3px solid #c9a66b;
+    }
+
+    nav a:hover {
+      background: #151e29;
+      color: white;
+    }
+
+    /* MAIN AREA */
+
+    .main {
+      flex: 1;
+      padding: 38px;
+    }
+
+    .header {
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: #8d98a7;
+      letter-spacing: 3px;
+      font-size: 11px;
+    }
+
+    /* KPI CARDS */
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: #111a24;
+      border: 1px solid #26313e;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .card-title {
+      color: #9aa5b3;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    .number {
+      font-size: 30px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .positive {
+      color: #5bd49a;
+      font-size: 12px;
+    }
+
+    .warning {
+      color: #e88475;
+      font-size: 12px;
+    }
+
+    /* CONTENT */
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    .chart {
+      height: 220px;
+      display: flex;
+      align-items: end;
+      gap: 18px;
+      padding-top: 20px;
+    }
+
+    .bar {
+      flex: 1;
+      background: linear-gradient(#d2b078, #8f7045);
+      border-radius: 5px 5px 0 0;
+      min-width: 15px;
+    }
+
+    .followup {
+      padding: 15px 0;
+      border-bottom: 1px solid #26313e;
+    }
+
+    .followup strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .followup small {
+      color: #8995a4;
+    }
+
+    .due {
+      color: #e3b865;
+      margin-top: 5px;
+      font-size: 12px;
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 6px;
+      border-bottom: 1px solid #26313e;
+      font-size: 13px;
+    }
+
+    th {
+      color: #84909e;
+      font-weight: 500;
+    }
+
+    .conversion {
+      color: #5bd49a;
+    }
+
+    @media (max-width: 900px) {
+      .kpis {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .dashboard-grid,
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        width: 180px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+
+    <div class="logo">Call<span>IQ</span></div>
+    <div class="tagline">CONVERSATIONS CREATE OPPORTUNITIES</div>
+
+    <nav>
+      <a class="active" href="#">⌂ &nbsp; Dashboard</a>
+      <a href="#">☎ &nbsp; Calls</a>
+      <a href="#">✓ &nbsp; Follow-ups</a>
+      <a href="#">♙ &nbsp; Team</a>
+      <a href="#">☆ &nbsp; QA</a>
+      <a href="#">▥ &nbsp; Reports</a>
+      <a href="#">◎ &nbsp; Contacts</a>
+      <a href="#">⚙ &nbsp; Settings</a>
+    </nav>
+
+  </aside>
+
+  <main class="main">
+
+    <header class="header">
+      <h1>Good morning, Lou</h1>
+      <p>EVERY CALL. EVERY OUTCOME. EVERY OPPORTUNITY.</p>
+    </header>
+
+    <section class="kpis">
+
+      <div class="card">
+        <div class="card-title">Total Calls</div>
+        <div class="number">247</div>
+        <div class="positive">↑ 8.2% vs last week</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Appointments</div>
+        <div class="number">38</div>
+        <div class="positive">↑ 12.4% vs last week</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Conversion Rate</div>
+        <div class="number">15.4%</div>
+        <div class="positive">↑ 2.1%</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Missed Calls</div>
+        <div class="number">19</div>
+        <div class="warning">↑ 26.7%</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Follow-ups Due</div>
+        <div class="number">27</div>
+        <div class="warning">7 overdue</div>
+      </div>
+
+    </section>
+
+    <section class="dashboard-grid">
+
+      <div class="card">
+
+        <h2 class="section-title">Call Volume Today</h2>
+
+        <div class="chart">
+          <div class="bar" style="height:30%"></div>
+          <div class="bar" style="height:42%"></div>
+          <div class="bar" style="height:58%"></div>
+          <div class="bar" style="height:85%"></div>
+          <div class="bar" style="height:76%"></div>
+          <div class="bar" style="height:60%"></div>
+          <div class="bar" style="height:48%"></div>
+          <div class="bar" style="height:38%"></div>
+          <div class="bar" style="height:54%"></div>
+          <div class="bar" style="height:32%"></div>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h2 class="section-title">Follow-ups</h2>
+
+        <div class="followup">
+          <strong>John Smith</strong>
+          <small>Service quote</small>
+          <div class="due">Overdue</div>
+        </div>
+
+        <div class="followup">
+          <strong>Sarah Jones</strong>
+          <small>Booking follow-up</small>
+          <div class="due">Due today 10:30am</div>
+        </div>
+
+        <div class="followup">
+          <strong>Mark Brown</strong>
+          <small>Customer enquiry</small>
+          <div class="due">Due today 2:00pm</div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="bottom-grid">
+
+      <div class="card">
+
+        <h2 class="section-title">Team Performance</h2>
+
+        <table>
+          <tr>
+            <th>Consultant</th>
+            <th>Calls</th>
+            <th>Bookings</th>
+            <th>Conversion</th>
+          </tr>
+
+          <tr>
+            <td>Sarah Williams</td>
+            <td>64</td>
+            <td>11</td>
+            <td class="conversion">17.2%</td>
+          </tr>
+
+          <tr>
+            <td>Michael Carter</td>
+            <td>57</td>
+            <td>9</td>
+            <td class="conversion">15.8%</td>
+          </tr>
+
+          <tr>
+            <td>Jessica Brown</td>
+            <td>71</td>
+            <td>10</td>
+            <td class="conversion">14.1%</td>
+          </tr>
+
+        </table>
+
+      </div>
+
+      <div class="card">
+
+        <h2 class="section-title">Recent Calls</h2>
+
+        <table>
+          <tr>
+            <th>Time</th>
+            <th>Customer</th>
+            <th>Outcome</th>
+          </tr>
+
+          <tr>
+            <td>9:44am</td>
+            <td>Amy White</td>
+            <td class="conversion">Booked</td>
+          </tr>
+
+          <tr>
+            <td>9:31am</td>
+            <td>Mark Jones</td>
+            <td>No Answer</td>
+          </tr>
+
+          <tr>
+            <td>9:15am</td>
+            <td>Lisa Brown</td>
+            <td>Follow-up</td>
+          </tr>
+
+        </table>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+</body>
 </html>
