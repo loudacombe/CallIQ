@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Call | CallIQ</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0b1119;
+      color: #f5f7fa;
+      min-height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+
+    .sidebar {
+      width: 220px;
+      background: #080d14;
+      border-right: 1px solid #26313e;
+      padding: 28px 18px;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .logo span {
+      color: #c9a66b;
+    }
+
+    .tagline {
+      color: #8791a2;
+      font-size: 8px;
+      letter-spacing: 1.5px;
+      line-height: 1.5;
+      margin-bottom: 38px;
+    }
+
+    .nav a {
+      display: block;
+      color: #b9c1cc;
+      text-decoration: none;
+      padding: 13px 14px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .nav a:hover {
+      background: #151e29;
+      color: white;
+    }
+
+    .nav .active {
+      background: #1c2633;
+      border: 1px solid #344152;
+      color: white;
+    }
+
+    /* MAIN */
+
+    .main {
+      flex: 1;
+      padding: 38px;
+      max-width: 1200px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .back {
+      color: #aab4c0;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back:hover {
+      color: white;
+    }
+
+    h1 {
+      font-size: 30px;
+      margin-bottom: 7px;
+    }
+
+    .subtitle {
+      color: #8791a2;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* FORM */
+
+    .form-card {
+      background: #111a24;
+      border: 1px solid #26313e;
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      font-size: 17px;
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: #aab4c0;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      background: #0b121b;
+      color: #f5f7fa;
+      border: 1px solid #344152;
+      border-radius: 8px;
+      padding: 12px 13px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #c9a66b;
+    }
+
+    textarea {
+      min-height: 115px;
+      resize: vertical;
+    }
+
+    /* TOGGLES */
+
+    .choice-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .choice {
+      flex: 1;
+      min-width: 130px;
+    }
+
+    .choice input {
+      display: none;
+    }
+
+    .choice label {
+      display: block;
+      padding: 13px;
+      text-align: center;
+      border: 1px solid #344152;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #0b121b;
+    }
+
+    .choice input:checked + label {
+      border-color: #c9a66b;
+      background: rgba(201, 166, 107, 0.12);
+      color: #e3bd7b;
+    }
+
+    /* OPTIONAL AREAS */
+
+    .optional {
+      display: none;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #26313e;
+    }
+
+    .checkbox-row {
+      display: flex;
+      gap: 24px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #d6dce4;
+      font-size: 13px;
+    }
+
+    .check input {
+      width: auto;
+      accent-color: #c9a66b;
+    }
+
+    /* BUTTONS */
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    button,
+    .cancel-button {
+      border-radius: 8px;
+      padding: 13px 22px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .cancel-button {
+      border: 1px solid #344152;
+      color: #c2cad4;
+      background: transparent;
+    }
+
+    .save-button {
+      border: none;
+      background: #c9a66b;
+      color: #10151c;
+    }
+
+    .save-button:hover {
+      background: #dbb778;
+    }
+
+    .success {
+      display: none;
+      background: rgba(91, 212, 154, 0.12);
+      border: 1px solid #5bd49a;
+      color: #77e3ae;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 800px) {
+      .sidebar {
+        width: 170px;
+      }
+
+      .main {
+        padding: 24px 18px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .full {
+        grid-column: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo">Call<span>IQ</span></div>
+    <div class="tagline">
+      CONVERSATIONS CREATE<br>
+      OPPORTUNITIES
+    </div>
+
+    <nav class="nav">
+      <a href="index.html">⌂ &nbsp; Dashboard</a>
+      <a href="calls.html" class="active">☎ &nbsp; Calls</a>
+      <a href="#">✓ &nbsp; Follow-ups</a>
+      <a href="#">♟ &nbsp; Team</a>
+      <a href="#">☆ &nbsp; QA</a>
+      <a href="#">▦ &nbsp; Reports</a>
+      <a href="#">● &nbsp; Contacts</a>
+      <a href="#">⚙ &nbsp; Settings</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div>
+        <h1>New Call</h1>
+        <div class="subtitle">
+          Every call. Every outcome. Every opportunity.
+        </div>
+      </div>
+
+      <a href="calls.html" class="back">← Back to Calls</a>
+    </div>
+
+    <div id="successMessage" class="success">
+      ✓ Call saved successfully.
+    </div>
+
+    <form id="newCallForm">
+
+      <section class="form-card">
+        <h2 class="section-title">Customer Details</h2>
+
+        <div class="grid">
+
+          <div class="field">
+            <label for="customerName">Customer Name *</label>
+            <input
+              id="customerName"
+              type="text"
+              placeholder="Enter customer name"
+              required
+            >
+          </div>
+
+          <div class="field">
+            <label for="phone">Phone Number *</label>
+            <input
+              id="phone"
+              type="tel"
+              placeholder="Enter phone number"
+              required
+            >
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="Enter email address"
+            >
+          </div>
+
+          <div class="field">
+            <label for="reference">Customer / Reference ID</label>
+            <input
+              id="reference"
+              type="text"
+              placeholder="Optional reference"
+            >
+          </div>
+
+        </div>
+      </section>
+
+      <section class="form-card">
+        <h2 class="section-title">Call Details</h2>
+
+        <div class="grid">
+
+          <div class="field full">
+            <label>Call Direction *</label>
+
+            <div class="choice-row">
+
+              <div class="choice">
+                <input
+                  type="radio"
+                  id="inbound"
+                  name="direction"
+                  value="Inbound"
+                  checked
+                >
+                <label for="inbound">↓ Inbound</label>
+              </div>
+
+              <div class="choice">
+                <input
+                  type="radio"
+                  id="outbound"
+                  name="direction"
+                  value="Outbound"
+                >
+                <label for="outbound">↑ Outbound</label>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="consultant">Consultant *</label>
+
+            <select id="consultant" required>
+              <option value="">Select consultant</option>
+              <option>Sarah Williams</option>
+              <option>Michael Carter</option>
+              <option>Emma Davis</option>
+              <option>Lou</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="reason">Call Reason *</label>
+
+            <select id="reason" required>
+              <option value="">Select call reason</option>
+              <option>General Enquiry</option>
+              <option>Sales</option>
+              <option>Booking / Appointment</option>
+              <option>Support</option>
+              <option>Complaint</option>
+              <option>Billing / Accounts</option>
+              <option>Follow-up</option>
+              <option>Cancellation</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="outcome">Outcome *</label>
+
+            <select id="outcome" required>
+              <option value="">Select outcome</option>
+              <option>Booked</option>
+              <option>Resolved</option>
+              <option>Follow-up Required</option>
+              <option>No Answer</option>
+              <option>Left Message</option>
+              <option>Transferred</option>
+              <option>Escalated</option>
+              <option>Cancelled</option>
+              <option>Not Interested</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="duration">Call Duration</label>
+            <input
+              id="duration"
+              type="text"
+              placeholder="e.g. 04:32"
+            >
+          </div>
+
+          <div class="field full">
+            <label for="notes">Call Notes</label>
+
+            <textarea
+              id="notes"
+              placeholder="Add useful notes about the conversation..."
+            ></textarea>
+          </div>
+
+        </div>
+
+        <div class="checkbox-row">
+
+          <label class="check">
+            <input id="appointmentCheck" type="checkbox">
+            Appointment booked
+          </label>
+
+          <label class="check">
+            <input id="followupCheck" type="checkbox">
+            Follow-up required
+          </label>
+
+        </div>
+
+        <div id="appointmentFields" class="optional">
+          <div class="grid">
+
+            <div class="field">
+              <label for="appointmentDate">Appointment Date</label>
+              <input id="appointmentDate" type="date">
+            </div>
+
+            <div class="field">
+              <label for="appointmentTime">Appointment Time</label>
+              <input id="appointmentTime" type="time">
+            </div>
+
+          </div>
+        </div>
+
+        <div id="followupFields" class="optional">
+          <div class="grid">
+
+            <div class="field">
+              <label for="followupDate">Follow-up Date</label>
+              <input id="followupDate" type="date">
+            </div>
+
+            <div class="field">
+              <label for="followupTime">Follow-up Time</label>
+              <input id="followupTime" type="time">
+            </div>
+
+            <div class="field full">
+              <label for="followupReason">Follow-up Notes</label>
+              <input
+                id="followupReason"
+                type="text"
+                placeholder="What needs to happen next?"
+              >
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <div class="actions">
+        <a href="calls.html" class="cancel-button">Cancel</a>
+        <button class="save-button" type="submit">
+          Save Call
+        </button>
+      </div>
+
+    </form>
+
+  </main>
+
+</div>
+
+<script>
+  const appointmentCheck =
+    document.getElementById("appointmentCheck");
+
+  const followupCheck =
+    document.getElementById("followupCheck");
+
+  const appointmentFields =
+    document.getElementById("appointmentFields");
+
+  const followupFields =
+    document.getElementById("followupFields");
+
+  appointmentCheck.addEventListener("change", function () {
+    appointmentFields.style.display =
+      this.checked ? "block" : "none";
+  });
+
+  followupCheck.addEventListener("change", function () {
+    followupFields.style.display =
+      this.checked ? "block" : "none";
+  });
+
+  document
+    .getElementById("newCallForm")
+    .addEventListener("submit", function (event) {
+
+      event.preventDefault();
+
+      const call = {
+        customerName:
+          document.getElementById("customerName").value,
+
+        phone:
+          document.getElementById("phone").value,
+
+        email:
+          document.getElementById("email").value,
+
+        reference:
+          document.getElementById("reference").value,
+
+        direction:
+          document.querySelector(
+            'input[name="direction"]:checked'
+          ).value,
+
+        consultant:
+          document.getElementById("consultant").value,
+
+        reason:
+          document.getElementById("reason").value,
+
+        outcome:
+          document.getElementById("outcome").value,
+
+        duration:
+          document.getElementById("duration").value,
+
+        notes:
+          document.getElementById("notes").value,
+
+        appointment:
+          appointmentCheck.checked,
+
+        appointmentDate:
+          document.getElementById("appointmentDate").value,
+
+        appointmentTime:
+          document.getElementById("appointmentTime").value,
+
+        followup:
+          followupCheck.checked,
+
+        followupDate:
+          document.getElementById("followupDate").value,
+
+        followupTime:
+          document.getElementById("followupTime").value,
+
+        followupReason:
+          document.getElementById("followupReason").value,
+
+        createdAt: new Date().toISOString()
+      };
+
+      const savedCalls =
+        JSON.parse(localStorage.getItem("calliqCalls")) || [];
+
+      savedCalls.unshift(call);
+
+      localStorage.setItem(
+        "calliqCalls",
+        JSON.stringify(savedCalls)
+      );
+
+      document.getElementById("successMessage").style.display =
+        "block";
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+      setTimeout(function () {
+        window.location.href = "calls.html";
+      }, 900);
+    });
+</script>
+
+</body>
+</html>
