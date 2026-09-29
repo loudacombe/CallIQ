@@ -17,7 +17,14 @@
 	"observability": {
 		"enabled": true
 	},
-	"upload_source_maps": true
+	"upload_source_maps": true,
+	"d1_databases": [
+		{
+			"binding": "calliq_db",
+			"database_name": "calliq-db",
+			"database_id": "50dc7037-3d04-441a-a099-4ce420f465a3"
+		}
+	]
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
