@@ -1,26 +1,60 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+interface Env {
+	DB: D1Database;
+}
+
+function json(data: unknown, status = 200) {
+	return new Response(JSON.stringify(data), {
+		status,
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
+}
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
+	async fetch(request: Request, env: Env): Promise<Response> {
 		const url = new URL(request.url);
-		switch (url.pathname) {
-			case '/message':
-				return new Response('Hello, World!');
-			case '/random':
-				return new Response(crypto.randomUUID());
-			default:
-				return new Response('Not Found', { status: 404 });
+
+		// Simple check that the CallIQ API is running
+		if (url.pathname === "/api/health" && request.method === "GET") {
+			return json({
+				success: true,
+				message: "CallIQ API is running",
+			});
 		}
+
+		// Get calls from the CallIQ database
+		if (url.pathname === "/api/calls" && request.method === "GET") {
+			try {
+				const { results } = await env.calliq_db.prepare(
+					`SELECT * FROM calls
+					 ORDER BY created_at DESC
+					 LIMIT 100`
+				).all();
+
+				return json({
+					success: true,
+					calls: results,
+				});
+			} catch (error) {
+				console.error("Unable to load calls:", error);
+
+				return json(
+					{
+						success: false,
+						error: "Unable to load calls",
+					},
+					500
+				);
+			}
+		}
+
+		return json(
+			{
+				success: false,
+				error: "Not Found",
+			},
+			404
+		);
 	},
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler<Env>
