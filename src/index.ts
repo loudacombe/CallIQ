@@ -1,5 +1,5 @@
 interface Env {
-	DB: D1Database;
+	calliq_db: D1Database;
 }
 
 function json(data: unknown, status = 200) {
@@ -49,7 +49,55 @@ export default {
 			}
 		}
 
-		return json(
+    // Save a new call to the CallIQ database
+    if (url.pathname === "/api/calls" && request.method === "POST") {
+      try {
+        const body = await request.json() as {
+          direction?: string;
+          call_reason?: string;
+          outcome?: string;
+          duration_seconds?: number;
+          notes?: string;
+          appointment_booked?: boolean;
+        };
+
+        const result = await env.calliq_db.prepare(
+          `INSERT INTO calls (
+            organization_id,
+            direction,
+            call_reason,
+            outcome,
+            duration_seconds,
+            notes,
+            appointment_booked
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          1,
+          body.direction ?? "Inbound",
+          body.call_reason ?? null,
+          body.outcome ?? "Resolved",
+          body.duration_seconds ?? 0,
+          body.notes ?? null,
+          body.appointment_booked ? 1 : 0
+        )
+        .run();
+
+        return json({
+          success: true,
+          message: "Call saved successfully",
+          id: result.meta.last_row_id,
+        }, 201);
+
+      } catch (error) {
+        console.error("Unable to save call:", error);
+
+        return json({
+          success: false,
+          error: "Unable to save call",
+        }, 500);
+      }
+    }		return json(
 			{
 				success: false,
 				error: "Not Found",
