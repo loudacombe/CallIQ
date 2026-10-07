@@ -643,16 +643,27 @@
         createdAt: new Date().toISOString()
       };
 
-      const savedCalls =
-        JSON.parse(localStorage.getItem("calliqCalls")) || [];
+const response = await fetch("/api/calls", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        direction: call.direction,
+        call_reason: call.reason,
+        outcome: call.outcome,
+        duration_seconds: Number(call.duration) || 0,
+        notes: call.notes,
+        appointment_booked: call.appointment
+    })
+});
 
-      savedCalls.unshift(call);
+const result = await response.json();
 
-      localStorage.setItem(
-        "calliqCalls",
-        JSON.stringify(savedCalls)
-      );
-
+if (!response.ok || !result.success) {
+    alert("Unable to save call. Please try again.");
+    return;
+}
       document.getElementById("successMessage").style.display =
         "block";
 
