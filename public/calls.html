@@ -423,78 +423,6 @@
 
           <tbody id="callTable">
 
-            <tr>
-              <td>9:44am</td>
-              <td>
-                <div class="customer">Amy White</div>
-                <div class="muted">0400 123 456</div>
-              </td>
-              <td>Sarah Williams</td>
-              <td>Inbound</td>
-              <td><span class="badge booked">Booked</span></td>
-              <td>04:32</td>
-            </tr>
-
-            <tr>
-              <td>9:31am</td>
-              <td>
-                <div class="customer">Mark Jones</div>
-                <div class="muted">0412 555 901</div>
-              </td>
-              <td>Michael Carter</td>
-              <td>Outbound</td>
-              <td><span class="badge noanswer">No Answer</span></td>
-              <td>00:41</td>
-            </tr>
-
-            <tr>
-              <td>9:18am</td>
-              <td>
-                <div class="customer">Jessica Lee</div>
-                <div class="muted">0433 218 745</div>
-              </td>
-              <td>Emma Davis</td>
-              <td>Inbound</td>
-              <td><span class="badge followup">Follow-up</span></td>
-              <td>06:18</td>
-            </tr>
-
-            <tr>
-              <td>9:02am</td>
-              <td>
-                <div class="customer">Daniel Brown</div>
-                <div class="muted">0421 604 332</div>
-              </td>
-              <td>Sarah Williams</td>
-              <td>Inbound</td>
-              <td><span class="badge resolved">Resolved</span></td>
-              <td>03:57</td>
-            </tr>
-
-            <tr>
-              <td>8:51am</td>
-              <td>
-                <div class="customer">Olivia Martin</div>
-                <div class="muted">0408 792 110</div>
-              </td>
-              <td>Michael Carter</td>
-              <td>Outbound</td>
-              <td><span class="badge booked">Booked</span></td>
-              <td>05:14</td>
-            </tr>
-
-            <tr>
-              <td>8:36am</td>
-              <td>
-                <div class="customer">Chris Taylor</div>
-                <div class="muted">0419 355 287</div>
-              </td>
-              <td>Emma Davis</td>
-              <td>Inbound</td>
-              <td><span class="badge resolved">Resolved</span></td>
-              <td>02:49</td>
-            </tr>
-
           </tbody>
 
         </table>
@@ -508,6 +436,73 @@
 </div>
 
 <script>
+
+async function loadCalls() {
+  const table = document.getElementById("callTable");
+
+  try {
+    const response = await fetch("/api/calls");
+
+    if (!response.ok) {
+      throw new Error("Unable to retrieve calls");
+    }
+
+    const data = await response.json();
+
+    if (!data.success || !Array.isArray(data.calls)) {
+      throw new Error("Invalid calls response");
+    }
+
+    table.replaceChildren();
+
+    for (const call of data.calls) {
+      const row = document.createElement("tr");
+      const date = call.created_at
+        ? new Date(call.created_at.replace(" ", "T") + "Z")
+        : null;
+
+      const time = date && !Number.isNaN(date.getTime())
+        ? date.toLocaleTimeString("en-AU", {
+            hour: "numeric",
+            minute: "2-digit"
+          })
+        : "—";
+
+      const duration = Number(call.duration_seconds || 0);
+      const minutes = Math.floor(duration / 60);
+      const seconds = duration % 60;
+
+      const values = [
+        time,
+        call.customer_name ?? "Not recorded",
+        call.consultant_name ?? "Not assigned",
+        call.direction ?? "—",
+        call.outcome ?? "—",
+        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+      ];
+
+      for (const value of values) {
+        const cell = document.createElement("td");
+        cell.textContent = String(value);
+        row.appendChild(cell);
+      }
+
+      table.appendChild(row);
+    }
+
+    filterCalls();
+  } catch (error) {
+    console.error("CallIQ loading error:", error);
+    table.replaceChildren();
+    const row = table.insertRow();
+    const cell = row.insertCell();
+    cell.colSpan = 6;
+    cell.textContent = "Unable to load calls. Please try again.";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadCalls);
+
   function filterCalls() {
     const search =
       document.getElementById("searchInput").value.toLowerCase();

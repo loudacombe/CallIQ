@@ -349,7 +349,6 @@
             <label for="customerName">Customer Name *</label>
             <input
               id="customerName"
-              type="text"
               placeholder="Enter customer name"
               required
             >
@@ -582,7 +581,7 @@
 
   document
     .getElementById("newCallForm")
-    .addEventListener("submit", function (event) {
+    .addEventListener("submit", async function (event) {
 
       event.preventDefault();
 
@@ -649,6 +648,10 @@ const response = await fetch("/api/calls", {
         "Content-Type": "application/json"
     },
     body: JSON.stringify({
+      customerName: call.customerName,
+      phone: call.phone,
+      email: call.email,
+      consultant: call.consultant,
         direction: call.direction,
         call_reason: call.reason,
         outcome: call.outcome,

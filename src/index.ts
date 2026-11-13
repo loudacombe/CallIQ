@@ -26,10 +26,19 @@ export default {
 		// Get calls from the CallIQ database
 		if (url.pathname === "/api/calls" && request.method === "GET") {
 			try {
-				const { results } = await env.calliq_db.prepare(
-					`SELECT * FROM calls
-					 ORDER BY created_at DESC
-					 LIMIT 100`
+				const { results } = await env.calliq_db.prepare(`
+SELECT
+  calls.*,
+  contacts.name AS customer_name,
+  contacts.phone AS customer_phone,
+  users.name AS consultant_name
+FROM calls
+LEFT JOIN contacts
+  ON calls.contact_id = contacts.id
+LEFT JOIN users
+  ON calls.consultant_id = users.id
+ORDER BY calls.created_at DESC
+LIMIT 100`
 				).all();
 
 				return json({
@@ -53,6 +62,10 @@ export default {
     if (url.pathname === "/api/calls" && request.method === "POST") {
       try {
         const body = await request.json() as {
+			customerName?: string;
+			phone?: string;
+			email?: string;
+			consultant?: string;
           direction?: string;
           call_reason?: string;
           outcome?: string;
@@ -61,19 +74,54 @@ export default {
           appointment_booked?: boolean;
         };
 
+
+
+const customerName = body.customerName?.trim();
+const customerPhone = body.phone?.trim();
+const customerEmail = body.email?.trim();
+
+let contactId: number | null = null;
+
+if (customerName && customerPhone) {
+  const contact = await env.calliq_db.prepare(
+    `INSERT INTO contacts
+      (organization_id, name, phone, email)
+     VALUES (?, ?, ?, ?)`
+  )
+  .bind(1, customerName, customerPhone, customerEmail || null)
+  .run();
+
+  contactId = contact.meta.last_row_id;
+}let consultantId: number | null = null;
+
+if (body.consultant) {
+  const consultant = await env.calliq_db
+    .prepare(
+      "SELECT id FROM users WHERE name = ? LIMIT 1"
+    )
+    .bind(body.consultant.trim() ?? "")
+    .first<{ id: number }>();
+
+  consultantId = consultant?.id ?? null;
+}
+
         const result = await env.calliq_db.prepare(
           `INSERT INTO calls (
             organization_id,
+			contact_id,
+			consultant_id,
             direction,
             call_reason,
             outcome,
             duration_seconds,
             notes,
             appointment_booked
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         .bind(
           1,
+		  contactId,
+		  consultantId,
           body.direction ?? "Inbound",
           body.call_reason ?? null,
           body.outcome ?? "Resolved",
@@ -94,7 +142,7 @@ export default {
 
         return json({
           success: false,
-          error: "Unable to save call",
+          error: error instanceof Error ? error.message : String(error),
         }, 500);
       }
     }		return json(
