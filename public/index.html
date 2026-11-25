@@ -376,31 +376,21 @@
         <h2 class="section-title">Recent Calls</h2>
 
         <table>
-          <tr>
-            <th>Time</th>
-            <th>Customer</th>
-            <th>Outcome</th>
-          </tr>
+<thead>
+<tr>
+<th>Time</th>
+<th>Customer</th>
+<th>Consultant</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody id="recentCalls">
+<tr>
+<td colspan="4">Loading calls...</td>
+</tr>
+</tbody>
+</table>
 
-          <tr>
-            <td>9:44am</td>
-            <td>Amy White</td>
-            <td class="conversion">Booked</td>
-          </tr>
-
-          <tr>
-            <td>9:31am</td>
-            <td>Mark Jones</td>
-            <td>No Answer</td>
-          </tr>
-
-          <tr>
-            <td>9:15am</td>
-            <td>Lisa Brown</td>
-            <td>Follow-up</td>
-          </tr>
-
-        </table>
 
       </div>
 
@@ -443,6 +433,34 @@ counter.textContent = totalCalls;
 document.getElementById("totalAppointments").textContent = totalAppointments;
 
 document.getElementById("conversionRate").textContent = conversionRate + "%";
+const recentCalls = document.getElementById("recentCalls");
+
+recentCalls.replaceChildren();
+
+const latestCalls = [...data.calls]
+.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+.slice(0, 5);
+
+latestCalls.forEach(call => {
+const row = recentCalls.insertRow();
+
+const time = new Date(call.created_at).toLocaleTimeString("en-AU", {
+hour: "2-digit",
+minute: "2-digit",
+timeZone: "Australia/Brisbane"
+});
+
+row.insertCell().textContent = time;
+row.insertCell().textContent = call.customer_name || "-";
+row.insertCell().textContent = call.consultant_name || "-";
+row.insertCell().textContent = call.outcome || "-";
+});
+
+if (latestCalls.length === 0) {
+const cell = recentCalls.insertRow().insertCell();
+cell.colSpan = 4;
+cell.textContent = "No calls recorded yet";
+}
 
     } catch (error) {
       console.error("Dashboard error:", error);
