@@ -298,8 +298,8 @@ white-space: nowrap;
 
       <div class="card">
         <div class="card-title">Missed Calls</div>
-        <div class="number">19</div>
-        <div class="warning">↑ 26.7%</div>
+        <div class="number" id="missedCalls">-</div>
+<div class="warning">Unanswered inbound calls</div>
       </div>
 
       <div class="card">
@@ -442,7 +442,12 @@ counter.textContent = totalCalls;
 document.getElementById("totalAppointments").textContent = totalAppointments;
 
 document.getElementById("conversionRate").textContent = conversionRate + "%";
+const missedCalls = data.calls.filter(call =>
+String(call.direction).toLowerCase() === "inbound" &&
+String(call.outcome).toLowerCase() === "no answer"
+).length;
 
+document.getElementById("missedCalls").textContent = missedCalls;
 const teamTable = document.getElementById("teamPerformance");
 const teamStats = new Map();
 
