@@ -338,44 +338,28 @@
 
         <h2 class="section-title">Team Performance</h2>
 
-        <table>
-          <tr>
-            <th>Consultant</th>
-            <th>Calls</th>
-            <th>Bookings</th>
-            <th>Conversion</th>
-          </tr>
+      <table>
+<thead>
+<tr>
+<th>Consultant</th>
+<th>Calls</th>
+<th>Bookings</th>
+<th>Conversion</th>
+</tr>
+</thead>
 
-          <tr>
-            <td>Sarah Williams</td>
-            <td>64</td>
-            <td>11</td>
-            <td class="conversion">17.2%</td>
-          </tr>
+<tbody id="teamPerformance">
+<tr>
+<td colspan="4">Loading team data...</td>
+</tr>
+</tbody>
+</table>
+</div>
 
-          <tr>
-            <td>Michael Carter</td>
-            <td>57</td>
-            <td>9</td>
-            <td class="conversion">15.8%</td>
-          </tr>
+<div class="card">
+<h2 class="section-title">Recent Calls</h2>
 
-          <tr>
-            <td>Jessica Brown</td>
-            <td>71</td>
-            <td>10</td>
-            <td class="conversion">14.1%</td>
-          </tr>
-
-        </table>
-
-      </div>
-
-      <div class="card">
-
-        <h2 class="section-title">Recent Calls</h2>
-
-        <table>
+<table>
 <thead>
 <tr>
 <th>Time</th>
@@ -433,6 +417,48 @@ counter.textContent = totalCalls;
 document.getElementById("totalAppointments").textContent = totalAppointments;
 
 document.getElementById("conversionRate").textContent = conversionRate + "%";
+
+const teamTable = document.getElementById("teamPerformance");
+const teamStats = new Map();
+
+data.calls.forEach(call => {
+const name = call.consultant_name || "Not assigned";
+
+if (!teamStats.has(name)) {
+teamStats.set(name, { calls: 0, bookings: 0 });
+}
+
+const stats = teamStats.get(name);
+stats.calls++;
+
+if (Number(call.appointment_booked) === 1) {
+stats.bookings++;
+}
+});
+
+teamTable.innerHTML = "";
+
+teamStats.forEach((stats, name) => {
+const row = teamTable.insertRow();
+
+const conversion = (
+stats.bookings / stats.calls * 100
+).toFixed(1);
+
+row.insertCell().textContent = name;
+row.insertCell().textContent = stats.calls;
+row.insertCell().textContent = stats.bookings;
+
+const cell = row.insertCell();
+cell.textContent = conversion + "%";
+cell.className = "conversion";
+});
+
+if (teamStats.size === 0) {
+const cell = teamTable.insertRow().insertCell();
+cell.colSpan = 4;
+cell.textContent = "No team data yet";
+}
 const recentCalls = document.getElementById("recentCalls");
 
 recentCalls.replaceChildren();
