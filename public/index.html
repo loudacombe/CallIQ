@@ -291,7 +291,7 @@
 
         <h2 class="section-title">Call Volume Today</h2>
 
-        <div class="chart">
+        <div class="chart" id="callVolumeChart">
           <div class="bar" style="height:30%"></div>
           <div class="bar" style="height:42%"></div>
           <div class="bar" style="height:58%"></div>
@@ -459,6 +459,48 @@ const cell = teamTable.insertRow().insertCell();
 cell.colSpan = 4;
 cell.textContent = "No team data yet";
 }
+const chart = document.getElementById("callVolumeChart");
+
+const formatter = new Intl.DateTimeFormat("en-CA", {
+timeZone: "Australia/Brisbane",
+year: "numeric",
+month: "2-digit",
+day: "2-digit"
+});
+
+const today = formatter.format(new Date());
+const hourlyCalls = Array(10).fill(0);
+
+data.calls.forEach(call => {
+if (!call.created_at) return;
+
+const date = new Date(
+call.created_at.replace(" ", "T") + "Z"
+);
+
+if (isNaN(date.getTime())) return;
+if (formatter.format(date) !== today) return;
+
+const hour = Number(date.toLocaleString("en-GB", {
+timeZone: "Australia/Brisbane",
+hour: "2-digit",
+hourCycle: "h23"
+}));
+
+if (hour >= 7 && hour < 17) {
+hourlyCalls[hour - 7]++;
+}
+});
+
+const maxCalls = Math.max(...hourlyCalls, 1);
+
+chart.querySelectorAll(".bar").forEach((bar, i) => {
+bar.style.height =
+(hourlyCalls[i] / maxCalls * 100) + "%";
+
+bar.title =
+(i + 7) + ":00 - " + hourlyCalls[i] + " calls";
+});
 const recentCalls = document.getElementById("recentCalls");
 
 recentCalls.replaceChildren();
