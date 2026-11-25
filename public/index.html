@@ -255,19 +255,19 @@
 
       <div class="card">
         <div class="card-title">Total Calls</div>
-        <div class="number">247</div>
+      <div class="number" id="totalCalls">-</div>
         <div class="positive">↑ 8.2% vs last week</div>
       </div>
 
       <div class="card">
         <div class="card-title">Appointments</div>
-        <div class="number">38</div>
+       <div class="number" id="totalAppointments">-</div> 
         <div class="positive">↑ 12.4% vs last week</div>
       </div>
 
       <div class="card">
         <div class="card-title">Conversion Rate</div>
-        <div class="number">15.4%</div>
+        <div class="number" id="conversionRate">-</div>  
         <div class="positive">↑ 2.1%</div>
       </div>
 
@@ -409,6 +409,49 @@
   </main>
 
 </div>
+
+<script>
+  async function loadDashboardCalls() {
+    const counter = document.getElementById("totalCalls");
+    if (!counter) return;
+
+    try {
+      const response = await fetch("/api/calls");
+
+      if (!response.ok) {
+        throw new Error("Unable to load calls");
+      }
+
+      const data = await response.json();
+
+      if (!data.success || !Array.isArray(data.calls)) {
+        throw new Error("Invalid call data");
+      }
+
+      const totalCalls = data.calls.length;
+
+const totalAppointments = data.calls.filter(
+call => Number(call.appointment_booked) === 1
+).length;
+
+const conversionRate = totalCalls > 0
+? (totalAppointments / totalCalls * 100).toFixed(1)
+: "0.0";
+
+counter.textContent = totalCalls;
+
+document.getElementById("totalAppointments").textContent = totalAppointments;
+
+document.getElementById("conversionRate").textContent = conversionRate + "%";
+
+    } catch (error) {
+      console.error("Dashboard error:", error);
+      counter.textContent = "—";
+    }
+  }
+
+  loadDashboardCalls();
+</script>
 
 </body>
 </html>
